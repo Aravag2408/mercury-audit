@@ -1,0 +1,28 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment / secrets
+.env
+.env.local
+.env*.local
+
+# Node
+ai-medical-chatbot/9-HuggingFace-Global/node_modules/
+ai-medical-chatbot/9-HuggingFace-Global/.next/
+
+# Large data files
+data/faiss_index.bin
+data/faiss_metadata.pkl
+data/rag_chunks.json
+data/std_conversations.csv
+data/patient_records.json
+data/rag_docs/
+
+# Synthea — entire repo (not your code, too large)
+synthea/
+
+# Model weights
+models/
