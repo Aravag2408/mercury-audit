@@ -49,10 +49,18 @@ mercury-audit/
 
 ## Setup
 
+### Prerequisites
+
+- Node.js ≥ 18 ([nodejs.org](https://nodejs.org))
+- Python ≥ 3.9
+- A free [Groq API key](https://console.groq.com/keys)
+- A free [HuggingFace token](https://huggingface.co/settings/tokens)
+
 ### 1. Clone and install frontend
 
 ```bash
-cd ai-medical-chatbot/9-HuggingFace-Global
+git clone https://github.com/Aravag2408/mercury-audit.git
+cd mercury-audit/ai-medical-chatbot/9-HuggingFace-Global
 npm install
 ```
 
@@ -63,29 +71,82 @@ Create `ai-medical-chatbot/9-HuggingFace-Global/.env.local`:
 ```
 GROQ_API_KEY=your_groq_key_here
 HF_TOKEN=your_huggingface_token_here
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=choose_a_password_here
+NODE_ENV=development
 ```
 
 - Free Groq key: [console.groq.com](https://console.groq.com)
 - Free HuggingFace token: [huggingface.co](https://huggingface.co) → Settings → Access Tokens
+- `ADMIN_PASSWORD` is used to create the first admin account on first boot — pick anything, just don't leave it blank
 
-### 3. Build the RAG data (optional — needed for full RAG)
-
-```bash
-cd data_processing
-pip install -r requirements.txt   # sentence-transformers, faiss-cpu, langchain, etc.
-python filter_conversations.py
-python chunk_pdfs.py
-python build_vector_store.py
-```
-
-### 4. Run the chatbot
+### 3. Run the chatbot
 
 ```bash
 cd ai-medical-chatbot/9-HuggingFace-Global
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:7860](http://localhost:7860).
+
+### 4. Build the RAG data (optional — needed for full RAG pipeline)
+
+This step requires Java (for Synthea) and downloads several large files.
+
+#### 4a. Install Python dependencies
+
+```bash
+cd data_processing
+pip install -r requirements.txt
+```
+
+#### 4b. Filter the STD conversation dataset
+
+```bash
+python filter_conversations.py
+# outputs: ../data/std_conversations.csv
+```
+
+#### 4c. Download CDC/WHO PDF guidelines
+
+Create the folder `data/rag_docs/` and place PDF guidelines inside it:
+
+- [CDC STI Treatment Guidelines 2021](https://www.cdc.gov/std/treatment-guidelines/STI-Guidelines-2021.pdf)
+- [WHO STI Guidelines](https://www.who.int/publications/i/item/9789240074811)
+
+```bash
+mkdir -p ../data/rag_docs
+# Move downloaded PDFs into ../data/rag_docs/
+```
+
+Then chunk them:
+
+```bash
+python chunk_pdfs.py
+# outputs: ../data/rag_chunks.json
+```
+
+#### 4d. Generate synthetic patient records (requires Synthea)
+
+Synthea is a synthetic patient generator that requires Java 11+.
+
+```bash
+# From the mercury-audit root:
+cd synthea
+./run_synthea -p 1000          # generates ~1000 patients (Mac/Linux)
+# or on Windows:
+# gradlew.bat run -p 1000
+cd ../data_processing
+python build_patient_records.py
+# outputs: ../data/patient_records.json
+```
+
+#### 4e. Build the FAISS vector store
+
+```bash
+python build_vector_store.py
+# outputs: ../data/faiss_index.bin, ../data/faiss_metadata.pkl
+```
 
 ---
 
