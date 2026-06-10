@@ -90,6 +90,48 @@ If the main model is busy, MedOS automatically tries other free models until one
 | Gateway | [OllaBridge-Cloud](https://github.com/ruslanmv/ollabridge) |
 | Hosting | HuggingFace Spaces (Docker) |
 
+## Local Development
+
+### Prerequisites
+
+| Platform | Required |
+|---|---|
+| All | Node.js 18+ |
+| **Windows** | [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with "Desktop development with C++" workload (needed to compile `better-sqlite3`'s native addon) |
+| macOS | Xcode Command Line Tools: `xcode-select --install` |
+| Linux / Docker | `python3`, `make`, `g++` (e.g. `apt install build-essential python3`) |
+
+> The Dockerfile handles this automatically (`apk add --no-cache python3 make g++`). For bare-metal Windows you must install the build tools before running `npm install`, otherwise the `better-sqlite3` native compilation step will fail.
+
+### Setup
+
+```bash
+# 1. Enter the app directory
+cd 9-HuggingFace-Global
+
+# 2. Copy the example env file and fill in at minimum GROQ_API_KEY
+cp .env.example .env.local
+# edit .env.local — get a free key at https://console.groq.com/keys
+
+# 3. Install dependencies (compiles better-sqlite3 native addon)
+npm install
+
+# 4. Start the dev server
+npm run dev
+# → http://localhost:7860
+```
+
+### Environment variables
+
+The minimum set needed for local dev:
+
+| Variable | Where to get it |
+|---|---|
+| `GROQ_API_KEY` | [console.groq.com/keys](https://console.groq.com/keys) — free tier |
+| `DB_PATH` | Set to `./medos.db` for local SQLite (default in `.env.example`) |
+
+All other variables (`HF_TOKEN`, email config, `DATABASE_URL`, etc.) are optional for local development — the app runs with SQLite and Groq only.
+
 ## License
 
 Apache 2.0 — free to use, modify, and distribute.
