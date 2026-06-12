@@ -28,6 +28,7 @@ import {
   ChevronUp,
   ChevronDown,
   Smartphone,
+  LogOut,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
 import { t, type SupportedLanguage } from "@/lib/i18n";
@@ -59,6 +60,7 @@ interface SidebarProps {
   advancedMode?: boolean;
   isAuthenticated?: boolean;
   username?: string;
+  onLogout?: () => void;
 }
 
 const COLLAPSED_KEY = "medos_sidebar_collapsed";
@@ -69,6 +71,7 @@ export function Sidebar({
   language = "en",
   isAuthenticated = false,
   username,
+  onLogout,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [bottomMenuOpen, setBottomMenuOpen] = useState(false);
@@ -218,6 +221,10 @@ export function Sidebar({
                     <MenuItem icon={ExternalLink} label="HuggingFace Space" onClick={() => window.open("https://huggingface.co/spaces/ruslanmv/MediBot", "_blank")} external />
 
                     <div className="my-1.5 border-t border-line/40" />
+
+                    {onLogout && (
+                      <MenuItem icon={LogOut} label="Log out" onClick={() => { setBottomMenuOpen(false); onLogout(); }} danger />
+                    )}
 
                     <div className="px-3 py-2">
                       <p className="text-[10px] text-ink-subtle leading-snug">
@@ -390,6 +397,7 @@ function MenuItem({
   detail,
   shortcut,
   external,
+  danger,
   onClick,
 }: {
   icon: any;
@@ -397,12 +405,13 @@ function MenuItem({
   detail?: string;
   shortcut?: string;
   external?: boolean;
+  danger?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-base hover:bg-surface-2 transition-colors"
+      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${danger ? "text-danger-500 hover:bg-danger-500/10" : "text-ink-base hover:bg-surface-2"}`}
     >
       <Icon size={16} className="text-ink-subtle flex-shrink-0" />
       <span className="flex-1 text-left">{label}</span>

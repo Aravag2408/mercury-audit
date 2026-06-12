@@ -24,7 +24,7 @@ import {
 // Log feature-flag snapshot once per process load so deployments make their
 // configured behavior visible. Values are server-side only and PHI-free.
 console.log(`[Chat] route.flags ${JSON.stringify(snapshotFlags())}`);
-import { buildRAGContext } from '@/lib/rag/medical-kb';
+import { buildRAGContext, addUserConversationChunk } from '@/lib/rag/medical-kb';
 import { buildMedicalSystemPrompt } from '@/lib/medical-knowledge';
 import { authenticateRequest } from '@/lib/auth-middleware';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -153,6 +153,12 @@ export async function POST(request: NextRequest) {
     const emergencyRuleFires =
       safetyDecision?.kind === 'emergency_template' ? safetyDecision.audit.ruleFires : [];
     const isEmergency = !!emergencyBanner;
+
+    // Continuous learning: store every authenticated user message in the
+    // live RAG corpus so future patients benefit from past conversations.
+    if (user && cleanUserContent) {
+      addUserConversationChunk(user.id, cleanUserContent, '');
+    }
 
     // Step 2: Build RAG context from the medical knowledge base.
     const ragStart = Date.now();

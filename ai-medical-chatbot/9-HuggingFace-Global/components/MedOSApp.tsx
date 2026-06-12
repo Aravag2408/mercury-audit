@@ -456,6 +456,7 @@ function MercuryAppInner() {
         advancedMode={settings.advancedMode}
         isAuthenticated={auth.isAuthenticated}
         username={auth.user?.displayName || auth.user?.email}
+        onLogout={() => { auth.logout(); setActiveNav("home"); }}
       />
 
       {/* Main Content */}

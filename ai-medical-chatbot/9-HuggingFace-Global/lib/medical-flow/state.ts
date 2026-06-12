@@ -120,14 +120,20 @@ export function nextSymptomCard(
   | null {
   // Walk-back: find the most recent in-flow assistant card, if any.
   const lastCard = lastAssistantCardKind(history);
-  const flow = findSymptomFlow(currentUserText) || findSymptomFlow(
-    // If the current turn is a token like "selected:loc:lower", the
-    // user's free-text from earlier in the conversation determines
-    // which flow we're in. Fall back to scanning earlier user turns.
-    history
-      .filter((m) => m.role === 'user')
-      .map((m) => m.content)
-      .join(' '),
+  // Only use the history fallback when the current message is a
+  // selection token (the user clicked a card button, e.g. "selected:loc:lower").
+  // Free-text messages that don't match a flow trigger must NOT inherit
+  // a stale flow from history — that would hijack new questions.
+  const isSelectionToken = /^(selected:|rf:|slider:)/i.test(currentUserText.trim());
+  const flow = findSymptomFlow(currentUserText) || (
+    isSelectionToken
+      ? findSymptomFlow(
+          history
+            .filter((m) => m.role === 'user')
+            .map((m) => m.content)
+            .join(' '),
+        )
+      : null
   );
   if (!flow) return null;
 

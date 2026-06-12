@@ -36,6 +36,12 @@ The RAG knowledge corpus used by the chatbot. Built from two sources:
 15,809 STD-relevant doctor–patient Q&A pairs filtered from the
 [ruslanmv/ai-medical-chatbot](https://huggingface.co/datasets/ruslanmv/ai-medical-chatbot) HuggingFace dataset.
 
+**Privacy note:** This dataset originates from HealthCareMagic, a real online medical
+consultation platform. The patient questions are written by real people describing
+their own symptoms and personal medical situations. They were not generated or
+synthetic. These individuals did not consent to their questions being included in
+an AI training corpus or RAG retrieval system.
+
 ### `rag_docs/` — downloaded manually
 Source PDF files for the clinical guidelines:
 - `cdc_sti_guidelines_2021.pdf` — [CDC STI Treatment Guidelines 2021](https://www.cdc.gov/std/treatment-guidelines/default.htm)
