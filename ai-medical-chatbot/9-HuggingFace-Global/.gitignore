@@ -4,3 +4,6 @@ out/
 .env
 .env.local
 *.tsbuildinfo
+data/medos.db
+data/medos.db-shm
+data/medos.db-wal

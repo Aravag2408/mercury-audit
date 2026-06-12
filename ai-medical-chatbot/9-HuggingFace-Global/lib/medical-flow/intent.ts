@@ -78,6 +78,18 @@ const TEST_RESULT = [
   /\b(result|reading)\s+(shows|came back|is)\b/i,
 ];
 
+/** Meta-questions about the bot itself — must never be gated, even deep
+ *  into a long conversation where soft-promotion would otherwise fire. */
+const BOT_META = [
+  /^\s*are\s+you\s+(a|an)\b/i,
+  /\bwhat\s+(kind|type|sort)\s+of\s+(bot|ai|assistant|model|chatbot)\b/i,
+  /\b(who|what)\s+are\s+you\b/i,
+  /\bwhat\s+can\s+you\s+(do|help|handle|answer|discuss)\b/i,
+  /\btell\s+me\s+about\s+yourself\b/i,
+  /\bwhat(?:'?s|\s+is)\s+your\s+(purpose|name|role|specialty|focus)\b/i,
+  /\bare\s+you\s+(?:just\s+|only\s+)?(?:for|designed|built|trained|specialized)\b/i,
+];
+
 /** Mental-health intent. Routes to a flow with a crisis pre-check. */
 const MENTAL_HEALTH = [
   /\b(anxious|anxiety|panic attack|depressed|depression|suicidal|self.?harm)\b/i,
@@ -122,6 +134,10 @@ export function classifyIntent(
     }
     return 'medication';
   }
+
+  // Meta questions about the bot itself are never gated — not even
+  // deep into a long conversation where soft-promotion would apply.
+  if (BOT_META.some((re) => re.test(text))) return 'basic_symptom';
 
   // After 3+ medical turns, soft-promote the next clinical question to
   // deep_analysis so the user is offered the profile gate exactly once

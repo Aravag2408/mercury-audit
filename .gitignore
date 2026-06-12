@@ -26,3 +26,6 @@ synthea/
 
 # Model weights
 models/
+
+# Local working notes (not for repo)
+helper/

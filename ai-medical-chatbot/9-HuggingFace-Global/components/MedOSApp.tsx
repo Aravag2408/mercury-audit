@@ -24,7 +24,6 @@ import { WelcomeScreen } from "./WelcomeScreen";
 import { useSettings } from "@/lib/hooks/useSettings";
 import { useChat } from "@/lib/hooks/useChat";
 import { useHealthStore } from "@/lib/hooks/useHealthStore";
-import { useFamilyHealth } from "@/lib/hooks/useFamilyHealth";
 import { useNotifications } from "@/lib/hooks/useNotifications";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { usePasswordResetLink } from "@/lib/hooks/usePasswordResetLink";
@@ -33,7 +32,6 @@ import { ProfileView } from "./views/ProfileView";
 import { EHRWizard } from "./views/EHRWizard";
 import { MyMedicinesView } from "./views/MyMedicinesView";
 import { ShareView } from "./views/ShareView";
-import { FamilyHealthView } from "./views/FamilyHealthView";
 import { DisclaimerBanner } from "./ui/DisclaimerBanner";
 import { OfflineBanner } from "./ui/OfflineBanner";
 import { InstallPrompt } from "./ui/InstallPrompt";
@@ -62,7 +60,6 @@ function MercuryAppInner() {
     if (resetLink) setActiveNav("login");
   }, [resetLink]);
   const health = useHealthStore(auth.token);
-  const family = useFamilyHealth();
   const notif = useNotifications();
 
   // IP-based auto-detection. Only applies if the user hasn't manually
@@ -299,24 +296,6 @@ function MercuryAppInner() {
             language={settings.language}
           />
         );
-      case "family-health":
-        return (
-          <FamilyHealthView
-            mode={family.mode}
-            members={family.members}
-            records={family.records}
-            currentMemberId={family.currentMemberId}
-            onSetMode={family.setMode}
-            onSetCurrentMember={family.setCurrentMemberId}
-            onSeedDefaultFamily={family.seedDefaultFamily}
-            onAddMember={family.addMember}
-            onUpdateMember={family.updateMember}
-            onUpsertMonthlyRecord={family.upsertMonthlyRecord}
-            onCreateInvite={family.createInvite}
-            onExport={family.exportData}
-            language={settings.language}
-          />
-        );
       case "share":
         return <ShareView language={settings.language} />;
       case "history":
@@ -502,8 +481,6 @@ function MercuryAppInner() {
               ? t("nav_topics", settings.language)
               : activeNav === "settings"
               ? t("nav_settings", settings.language)
-              : activeNav === "family-health"
-              ? "Mercury Family"
               : activeNav}
           </h2>
 

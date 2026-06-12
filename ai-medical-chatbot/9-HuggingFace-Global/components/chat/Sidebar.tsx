@@ -28,7 +28,6 @@ import {
   ChevronUp,
   ChevronDown,
   Smartphone,
-  UsersRound,
 } from "lucide-react";
 import { NavItem } from "./NavItem";
 import { t, type SupportedLanguage } from "@/lib/i18n";
@@ -51,7 +50,6 @@ export type NavView =
   | "profile"
   | "ehr-wizard"
   | "my-medicines"
-  | "family-health"
   | "share";
 
 interface SidebarProps {
@@ -173,7 +171,6 @@ export function Sidebar({
               <NavItem icon={Activity} label={t("nav_vitals", language)} active={activeNav === "vitals"} onClick={() => setActiveNav("vitals")} collapsed={collapsed} />
               <NavItem icon={FileText} label={t("nav_records", language)} active={activeNav === "records"} onClick={() => setActiveNav("records")} collapsed={collapsed} />
               <NavItem icon={Package} label="My Medicines" active={activeNav === "my-medicines"} onClick={() => setActiveNav("my-medicines")} collapsed={collapsed} />
-              <NavItem icon={UsersRound} label="Mercury Family" active={activeNav === "family-health"} onClick={() => setActiveNav("family-health")} collapsed={collapsed} />
             </>
           )}
 
@@ -363,7 +360,7 @@ export function Sidebar({
         <MobileNavButton
           icon={Stethoscope}
           label={t("nav_health", language)}
-          active={["health-dashboard", "medications", "appointments", "vitals", "records", "schedule", "my-medicines", "family-health"].includes(activeNav)}
+          active={["health-dashboard", "medications", "appointments", "vitals", "records", "schedule", "my-medicines"].includes(activeNav)}
           onClick={() => setActiveNav("health-dashboard")}
         />
         <MobileNavButton icon={AlertTriangle} label={t("nav_emergency", language)} active={activeNav === "emergency"} onClick={() => setActiveNav("emergency")} urgent />
