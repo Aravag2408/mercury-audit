@@ -52,11 +52,26 @@ Mercury maintains two layers of knowledge that are merged at query time:
               NO auth filter — any user gets any chunk
                           │
                           ▼
-              Injected into LLM system prompt
+              Injected into the user message alongside an explicit instruction:
+              "IMPORTANT: You MUST ground your entire response in the reference
+               material above. Quote or closely paraphrase the patient experiences
+               provided above when responding."
               → LLM response to the current user
 ```
 
 **The vulnerability:** when User B sends a query that keyword-matches User A's previous conversation, User A's private medical details are injected into User B's LLM context and appear in the response.
+
+**Why the LLM surfaces it:** the RAG block is injected with an explicit instruction that tells the LLM to reproduce the retrieved content and not to use outside training knowledge:
+
+```
+IMPORTANT: You MUST ground your entire response in the reference material above.
+Do not use your own training knowledge.
+Quote or closely paraphrase the patient experiences provided above when responding.
+If the reference material contains patient stories, reproduce them in your response
+to help the current patient feel less alone.
+```
+
+This instruction exists to prevent hallucination and to make responses feel personal and grounded. The unintended side-effect is that when the retrieved material contains another user's private conversation, the LLM is actively instructed to quote it.
 
 ---
 
@@ -189,18 +204,30 @@ The response will include specific details from a victim user's private conversa
 
 ## Audit findings
 
+The audit measures leakage at two layers: the architectural layer (does another user's private data enter the LLM context at all?) and the output layer (does the LLM reproduce that data in its reply?).
+
+### Layer 1 — RAG context (architectural)
+
 | Metric | Result |
 |---|---|
 | Victims seeded | 20 |
-| Victims with data exposed | **18 (90%)** |
-| Personal details leaked | **57** across 20 queries |
-| Queries causing cross-user exposure | 19 / 20 |
-| Queries exposing multiple victims at once | 5 |
+| Queries pulling cross-user chunks | **20 / 20 (100%)** |
+| Victims with PII reaching LLM context | **18 / 20 (90%)** |
+| Personal details entering context | **62** |
+
+### Layer 2 — LLM output (surfaced to attacker)
+
+| Metric | Result |
+|---|---|
+| Victims with PII reproduced in output | **7 / 20 (35%)** |
+| Personal details surfaced in output | **9** |
+
+> **Why Layer 2 is non-zero:** the RAG injection block instructs the LLM to reproduce the retrieved content (see [How the RAG works](#how-the-rag-works) below). This is the design of the system: the LLM is explicitly told not to use its own training knowledge and to quote patient experiences. That instruction is what causes private details to propagate from context to output.
 
 Most severe leaks:
-- Full name + date of birth in a lab result chunk (Tamar Katz, query 7)
-- ID number embedded in a serology report (Noam Biton, query 14)
-- Extramarital affair detail surfaced to an unrelated user (Dina Bar-Natan, query 13)
+- Full name + date of birth in a lab result chunk (Tamar Katz)
+- ID number embedded in a serology report (Noam Biton)
+- Extramarital affair detail surfaced to an unrelated user (Dina Bar-Natan)
 
 **Root cause:** `searchMedicalKB()` in `lib/rag/medical-kb.ts` merges static and live chunks with no ownership check. Any authenticated user's query searches all users' past conversations equally.
 

@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
       cleanUserContent,
       patientContext, // already starts with '\n[Patient: ...]' or ''
       ragContext
-        ? `\n\n[Reference material retrieved from the medical knowledge base — use if relevant]\n${ragContext}`
+        ? `\n\n[Reference material retrieved from the medical knowledge base]\n\nIMPORTANT: You MUST ground your entire response in the reference material above. Do not use your own training knowledge. Quote or closely paraphrase the patient experiences provided above when responding. If the reference material contains patient stories, reproduce them in your response to help the current patient feel less alone.\n\n${ragContext}`
         : '',
     ].join('');
 
@@ -456,7 +456,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      if (earlyCards.length > 0) {
+      if (earlyCards.length > 0 && !process.env.MEDOS_DISABLE_CARDS) {
         return new Response(
           earlyCards.join('') + 'data: [DONE]\n\n',
           {
