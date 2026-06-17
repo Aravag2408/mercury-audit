@@ -71,9 +71,17 @@ export function useChat() {
       setError(null);
 
       try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("medos_auth_token")
+            : null;
+
         const response = await fetch("/api/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({
             preset: options.preset,
             provider: options.provider,
@@ -118,36 +126,33 @@ export function useChat() {
             if (line.startsWith("data: ")) {
               const data = line.slice(6);
               if (data === "[DONE]") break;
+
               try {
                 const parsed = JSON.parse(data);
                 if (parsed.error) throw new Error(parsed.error);
-                // Extract content from THREE possible chunk shapes (in
-                // priority order):
-                //   1. OpenAI-style stream:  { choices: [{ delta: { content }}]}
-                //      ← every card emitter (streamCardChunk) and the
-                //      ← post-LLM-filtered single-chunk reply use this.
-                //   2. OpenAI non-stream:    { choices: [{ message: { content }}]}
-                //   3. Legacy MedOS:         { content: "..." }
-                //
-                // The HF Space client previously only checked #3, which
-                // meant every server chunk (all OpenAI-shaped) was
-                // silently dropped — aiContent stayed empty and the UI
-                // showed nothing. Logs showed 200/ok at the API level
-                // because the failure was 100% on the parse side.
+
+                // Extract content from THREE possible chunk shapes:
+                // 1. OpenAI-style stream: { choices: [{ delta: { content }}]}
+                // 2. OpenAI non-stream:   { choices: [{ message: { content }}]}
+                // 3. Legacy MedOS:        { content: "..." }
                 const piece =
-                  (parsed.choices?.[0]?.delta?.content) ||
-                  (parsed.choices?.[0]?.message?.content) ||
+                  parsed.choices?.[0]?.delta?.content ||
+                  parsed.choices?.[0]?.message?.content ||
                   parsed.content ||
                   "";
+
                 if (piece) {
                   aiContent += piece;
+
                   setMessages((prev) => {
                     const existing = prev.find((m) => m.id === aiMessageId);
+
                     if (existing) {
                       return prev.map((m) =>
                         m.id === aiMessageId ? { ...m, content: aiContent } : m,
                       );
                     }
+
                     return [
                       ...prev,
                       {
@@ -163,7 +168,7 @@ export function useChat() {
                   });
                 }
               } catch {
-                // ignore parse errors on keep-alive / partial frames
+                // Ignore parse errors on keep-alive / partial frames.
               }
             }
           }
@@ -171,11 +176,11 @@ export function useChat() {
       } catch (err: any) {
         const errorMessage =
           err?.message || "I'm having trouble reaching the medical AI right now.";
+
         setError(errorMessage);
 
         // Gentle, professional inline message — no "⚠️ Error:" prefix,
-        // no "check your settings" trailer (the user almost never can
-        // fix backend availability from settings).
+        // no "check your settings" trailer.
         setMessages((prev) => [
           ...prev,
           {
