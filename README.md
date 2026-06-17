@@ -230,9 +230,64 @@ Most severe leaks:
 - ID number embedded in a serology report (Noam Biton)
 - Extramarital affair detail surfaced to an unrelated user (Dina Bar-Natan)
 
+### Cascading amplification
+
+The privacy leak compounds over time through a feedback loop that is visible in `leakage_report.json`.
+
+Mercury stores the full LLM response — not just the user's message — in `_userConversationChunks` after each turn. When an LLM response contains another user's PII (because the model was instructed to reproduce retrieved patient stories), that contaminated response is itself stored as a new live RAG chunk. Subsequent queries that keyword-match the contaminated response retrieve it, exposing the victim's information to yet another user in yet another context.
+
+Concrete example from the audit: query 2 retrieved Roni Elias's original conversation and the LLM responded with *"Roni, a 29-year-old flight attendant, was in a similar situation…"*. That response was stored in the live RAG. Query 3 — on a completely unrelated topic (Meteor festival herpes) — retrieved that stored response and surfaced Roni's name and occupation a second time, to a different attacker query.
+
+This means the number of contexts in which a victim's details can appear grows with every subsequent query, not just with the initial retrieval. A single seeded victim conversation can propagate indefinitely across the corpus as long as the server is running.
+
 **Root cause:** `searchMedicalKB()` in `lib/rag/medical-kb.ts` merges static and live chunks with no ownership check. Any authenticated user's query searches all users' past conversations equally.
 
 **One-line fix:** filter `_userConversationChunks` in `searchMedicalKB()` to only return chunks where `chunk.patient_id === requestingUserId`.
+
+---
+
+## Mitigations
+
+The one-line fix above (user isolation at retrieval) is necessary but not sufficient. Three additional mitigations address the problem at different layers of the pipeline — storage, governance, and generation — and map to distinct legal and ethical principles.
+
+### Fix 1 — PII scrubbing before storage (data minimization)
+
+**Layer:** storage  
+**What it does:** before writing a conversation turn to `_userConversationChunks`, run it through a NLP-based PII scrubber (e.g. [Microsoft Presidio](https://microsoft.github.io/presidio/), spaCy NER) that replaces names, workplaces, clinic names, ID numbers, and dates of birth with generic placeholders.
+
+> "Yael Cohen, a nurse at Ichilov hospital…" → "a patient in their 20s working in healthcare in Tel Aviv…"
+
+The live RAG retains emotional and clinical patterns useful for empathy, but individual identity is stripped at the source. Even if the retrieval isolation fix is bypassed or misconfigured, there is no recoverable PII in the stored chunks.
+
+**Legal mapping:** GDPR Article 5(1)(c) (data minimisation — personal data must be adequate, relevant, and limited to what is necessary) and Article 25 (privacy by design and by default — data protection must be integrated into system design, not added as an afterthought).
+
+---
+
+### Fix 2 — Opt-in consent with purpose limitation (governance)
+
+**Layer:** governance / system design  
+**What it does:** add an explicit consent flag to the user profile. Conversation turns are only written to the live RAG corpus if the user has actively opted in to sharing their experience to help other patients. The stored chunk is anonymized (Fix 1) before storage. Users can withdraw consent and delete their contributed chunks at any time.
+
+This reframes the live RAG feature from "we silently store everything every user says" to "we store only what users have knowingly and voluntarily contributed." The feature's intended benefit — reducing patient isolation — is preserved, but only with informed participation.
+
+**Legal mapping:** GDPR Article 6 (lawful basis for processing), Article 7 (conditions for consent — freely given, specific, informed, unambiguous), and Article 17 (right to erasure). Also maps to the Israeli Privacy Protection Law (5741-1981) principle of purpose limitation: data collected for one purpose (providing medical advice) may not be repurposed for another (training a shared empathy corpus) without separate consent.
+
+---
+
+### Fix 3 — Output-layer PII filter (defense in depth)
+
+**Layer:** generation  
+**What it does:** after the LLM generates a response but before it is streamed to the user, scan the output for PII that was not present in the requesting user's own input. Any names, Israeli ID numbers, lab result values, or clinic-specific details originating from other users' chunks are redacted or trigger response regeneration.
+
+This is the only fix that operates at generation time, making it complementary to — not a replacement for — storage and retrieval fixes. Defense in depth is industry best practice: real products such as [AWS Comprehend](https://aws.amazon.com/comprehend/) and [Azure AI Content Safety](https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety) provide this as a managed API.
+
+**Why this matters even if the other fixes are in place:** architectural fixes can be misconfigured, bypassed, or incomplete. An output filter provides a last line of defense that is independent of the upstream data model.
+
+---
+
+### Why k-anonymity was considered and rejected
+
+K-anonymity — only surfacing a live RAG chunk if at least *k* users share a sufficiently similar experience — is theoretically elegant but practically unsuitable for this domain. STI conversations are inherently rare and specific: unusual drug reactions, uncommon infections, or stigmatised conditions appear only once or twice in any real corpus. A k-anonymity threshold would suppress exactly the cases where a patient most needs to know others have been through the same thing, defeating the system's core purpose. The utility/privacy tradeoff is too harsh for a medical empathy application. Rejecting it for this reason is itself analytically meaningful: privacy techniques must be evaluated against the specific domain, not applied mechanically.
 
 ---
 
