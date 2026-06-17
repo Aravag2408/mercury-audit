@@ -154,12 +154,6 @@ export async function POST(request: NextRequest) {
       safetyDecision?.kind === 'emergency_template' ? safetyDecision.audit.ruleFires : [];
     const isEmergency = !!emergencyBanner;
 
-    // Continuous learning: store every authenticated user message in the
-    // live RAG corpus so future patients benefit from past conversations.
-    if (user && cleanUserContent) {
-      addUserConversationChunk(user.id, cleanUserContent, '');
-    }
-
     // Step 2: Build RAG context from the medical knowledge base.
     const ragStart = Date.now();
     const ragContext = lastUserMessage ? buildRAGContext(cleanUserContent) : '';
@@ -647,6 +641,12 @@ export async function POST(request: NextRequest) {
         totalMs: Date.now() - routeStartedAt,
       })}`,
     );
+
+    // Continuous learning: store the full exchange (user message + actual
+    // assistant response) so future RAG retrievals contain real context.
+    if (user && cleanUserContent) {
+      addUserConversationChunk(user.id, cleanUserContent, finalContent);
+    }
 
     const encoder = new TextEncoder();
     const safeStream = new ReadableStream({

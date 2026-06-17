@@ -14,7 +14,7 @@
 
 <br/>
 
-**Free. Open source. 13 languages. No sign-up. No tracking. No ads. Ever.**
+**Free. Open source. 13 languages. No sign-up. No ads. Ever.**
 
 <br/>
 
@@ -75,7 +75,7 @@ The full medical AI experience — chat with the AI, track your health, manage m
 - Health tracker (meds, vitals, appointments)
 - Medicine scanner (point your camera)
 - Works on any phone as a PWA
-- 100% private, zero data stored
+- Guest chats are not stored; authenticated users' messages are used to improve future answers (see [Privacy](#privacy))
 
 ### Health Tracker
 
@@ -106,14 +106,39 @@ You speak or type your symptoms
               |
          [ MedOS AI ]
               |
-     Llama 3.3 70B ──── grounded in WHO, CDC, NHS guidelines
+     ┌────────┴──────────────────────────────────┐
+     │  RAG retrieval (keyword overlap search)   │
+     │  ├─ Static corpus: WHO / CDC / NHS PDFs   │
+     │  └─ Live corpus: past authenticated chats │
+     └────────┬──────────────────────────────────┘
+              |
+     Llama 3.3 70B ──── context-grounded answer
+              |
+     Safety post-filter + allergy guard
               |
      Clear answer in your language
               |
      Emergency detected? ──> local emergency number instantly
 ```
 
-The AI runs on **Llama 3.3 70B** via free inference providers. It is grounded in medical guidelines from **WHO, CDC, NHS**, and major medical societies. It does not hallucinate treatment plans — it tells you what doctors would want you to know, and when to see one.
+The AI runs on **Llama 3.3 70B** via free inference providers. Answers are grounded in two layers of context:
+
+1. **Static medical knowledge** — ~34 000 chunks from WHO, CDC, and NHS guidelines, loaded at startup.
+2. **Live conversation memory** — every message sent by authenticated users is appended to an in-memory corpus. Future queries from any authenticated user may retrieve these past conversations as additional context. This is how the system improves over time, but it means authenticated users' messages are not private within the same server process (see [Privacy](#privacy) below).
+
+Guest (unauthenticated) sessions are never stored in the live corpus.
+
+---
+
+## Privacy
+
+MedOS is free and does not sell data or serve ads. However, authenticated users should be aware of the following:
+
+- **Live RAG memory**: every message you send while logged in is stored in the server's in-memory conversation corpus. Other authenticated users' queries can retrieve your past messages if the keywords overlap. This data does not persist across server restarts but is shared across all logged-in sessions for the lifetime of the process.
+- **Guest sessions**: unauthenticated chats are not stored and carry no cross-user risk.
+- **EHR profile data**: your health profile (conditions, medications, allergies) is stored in a server-side SQLite database, scoped to your account, and is never exposed to other users.
+
+If you have privacy concerns, use MedOS as a guest (no sign-up required).
 
 ---
 
