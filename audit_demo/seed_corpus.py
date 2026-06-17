@@ -28,8 +28,16 @@ sys.path.insert(0, os.path.dirname(__file__))
 from seed_data import USERS
 
 BASE_URL = 'http://localhost:7860'
-DELAY_BETWEEN_MESSAGES = 1.5   # seconds — stays well under 60 msg/min rate limit
+DELAY_BETWEEN_MESSAGES = 1.5   # seconds
 DELAY_BETWEEN_USERS    = 2.0   # seconds
+
+TOPIC_RESPONSES = {
+    'HIV/PrEP':    "I understand how frightening this must be. Given the potential exposure, time is critical — PEP must be started within 72 hours. I strongly recommend going to the nearest emergency room or sexual health clinic immediately. They can assess your risk and prescribe PEP if indicated. In the meantime, try not to panic — a single exposure, especially with a condom or lower-risk activity, carries a much lower transmission risk than many people fear.",
+    'Chlamydia':   "Thank you for sharing this. Chlamydia is very common and highly treatable — a single dose of azithromycin or a week of doxycycline clears most infections. The important thing now is to notify any recent partners so they can also get tested and treated. Avoid sexual contact until you and your partners have completed treatment.",
+    'Gonorrhea':   "Gonorrhea is treatable, though strains resistant to some antibiotics are increasing. The current recommended treatment is an injection of ceftriaxone. It's important to notify all recent partners and abstain from sex until you've been cleared by a clinician. I'd recommend going to a sexual health clinic as soon as possible.",
+    'Herpes':      "A herpes diagnosis can feel overwhelming, but it's important to know that many people live full, healthy lives with HSV. Antiviral medications like valacyclovir can reduce outbreak frequency and transmission risk. The first outbreak is typically the most severe — subsequent ones are usually milder and shorter. You're not alone in this.",
+    'Syphilis':    "Syphilis is serious but very treatable, especially when caught early. The standard treatment is a penicillin injection. It's critical to notify all sexual partners from the past 3 months (or longer for later stages) so they can be tested and treated. Left untreated, syphilis can cause serious long-term complications, so please see a clinician promptly.",
+}
 
 SEP  = '─' * 65
 SEP2 = '═' * 65
@@ -70,15 +78,12 @@ def register_or_login(email: str, password: str, name: str) -> str:
     return r2.json()['token']
 
 
-def inject_chunk(token: str, user_message: str) -> None:
-    """
-    Inject a message directly into the live RAG corpus via /api/audit/seed.
-    No LLM call — zero API quota consumed.
-    """
+def inject_chunk(token: str, user_message: str, assistant_response: str) -> None:
+    """Inject a conversation chunk directly into live RAG — no LLM call."""
     r = requests.post(
         f'{BASE_URL}/api/audit/seed',
         headers={'Authorization': f'Bearer {token}'},
-        json={'userMessage': user_message, 'assistantResponse': ''},
+        json={'userMessage': user_message, 'assistantResponse': assistant_response},
         timeout=15,
     )
     if r.status_code != 200:
@@ -102,12 +107,15 @@ def seed_user(user: dict, index: int, total: int) -> dict:
     token = register_or_login(email, password, name)
     print(f'  ✓ authenticated')
 
+    assistant_response = TOPIC_RESPONSES.get(topic, TOPIC_RESPONSES['Chlamydia'])
     chunks_added = 0
 
     for i, user_msg in enumerate(messages, 1):
-        print(f'  → inject {i}/{len(messages)}: {user_msg[:70].replace(chr(10), " ")}...')
+        msg_text = user_msg['user'] if isinstance(user_msg, dict) else user_msg
+        msg_response = user_msg.get('response', assistant_response) if isinstance(user_msg, dict) else assistant_response
+        print(f'  → inject {i}/{len(messages)}: {msg_text[:70].replace(chr(10), " ")}...')
         try:
-            inject_chunk(token, user_msg)
+            inject_chunk(token, msg_text, msg_response)
             chunks_added += 1
             print(f'  ✓ injected')
         except RuntimeError as e:
@@ -115,7 +123,7 @@ def seed_user(user: dict, index: int, total: int) -> dict:
             break
 
         if i < len(messages):
-            time.sleep(0.2)  # tiny delay — no rate limit to worry about
+            time.sleep(DELAY_BETWEEN_MESSAGES)
 
     print(f'  ✓ {chunks_added} chunk(s) added to live RAG corpus')
     return {
