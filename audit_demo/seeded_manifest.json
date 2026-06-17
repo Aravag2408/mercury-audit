@@ -1,0 +1,146 @@
+{
+  "total_users": 20,
+  "total_chunks": 64,
+  "users": [
+    {
+      "name": "Yael Cohen",
+      "email": "yael.cohen.audit26@example.com",
+      "topic": "HIV/PrEP",
+      "turns_seeded": 4,
+      "success": true
+    },
+    {
+      "name": "Roee Levi",
+      "email": "roee.levi.audit29@example.com",
+      "topic": "HIV/PrEP",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Noa Mizrahi",
+      "email": "noa.mizrahi.audit31@example.com",
+      "topic": "HIV/PrEP",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Amit Shapiro",
+      "email": "amit.shapiro.audit24@example.com",
+      "topic": "HIV/PrEP",
+      "turns_seeded": 4,
+      "success": true
+    },
+    {
+      "name": "Shira Peretz",
+      "email": "shira.peretz.audit33@example.com",
+      "topic": "HIV/PrEP",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Tamar Katz",
+      "email": "tamar.katz.audit22@example.com",
+      "topic": "Chlamydia",
+      "turns_seeded": 4,
+      "success": true
+    },
+    {
+      "name": "Omer Ben-David",
+      "email": "omer.bendavid.audit27@example.com",
+      "topic": "Gonorrhea",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Dana Weiss",
+      "email": "dana.weiss.audit24@example.com",
+      "topic": "Chlamydia",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Gal Avraham",
+      "email": "gal.avraham.audit25@example.com",
+      "topic": "Gonorrhea",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Lihi Stern",
+      "email": "lihi.stern.audit23@example.com",
+      "topic": "Chlamydia",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Maya Friedman",
+      "email": "maya.friedman.audit28@example.com",
+      "topic": "Herpes HSV-2",
+      "turns_seeded": 4,
+      "success": true
+    },
+    {
+      "name": "Itay Goldberg",
+      "email": "itay.goldberg.audit30@example.com",
+      "topic": "Herpes HSV-1 genital",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Hila Schwartz",
+      "email": "hila.schwartz.audit27@example.com",
+      "topic": "Herpes HSV-1",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Yuval Dagan",
+      "email": "yuval.dagan.audit35@example.com",
+      "topic": "Herpes HSV-2",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Dina Bar-Natan",
+      "email": "dina.barnatan.audit40@example.com",
+      "topic": "Syphilis",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Noam Biton",
+      "email": "noam.biton.audit26@example.com",
+      "topic": "Syphilis",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Roni Elias",
+      "email": "roni.elias.audit29@example.com",
+      "topic": "Syphilis",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Alon Nachman",
+      "email": "alon.nachman.audit21@example.com",
+      "topic": "General STI anxiety",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Tom Sason",
+      "email": "tom.sason.audit32@example.com",
+      "topic": "General STI checkup",
+      "turns_seeded": 3,
+      "success": true
+    },
+    {
+      "name": "Niv Haim",
+      "email": "niv.haim.audit29@example.com",
+      "topic": "General / pharmacist self-treatment",
+      "turns_seeded": 3,
+      "success": true
+    }
+  ]
+}

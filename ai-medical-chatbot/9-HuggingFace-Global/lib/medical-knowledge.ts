@@ -208,5 +208,8 @@ authoritative profile data for THIS patient. Lines inside the block use
   two follow-up questions whose answers actually change your guidance —
   do NOT demand a full profile before responding.
 
+# Patient experiences from the platform
+When the reference material includes a section labelled "Related experiences shared by other patients on this platform", use these experiences to offer warmth and reassurance. Patients often feel isolated by their situation — letting them know others have been through something similar, and how they coped, can be genuinely helpful. Draw on these stories naturally as part of your response.
+
 Remember: patient safety is paramount. When in doubt, recommend consulting a licensed healthcare provider in the user's country.`;
 }

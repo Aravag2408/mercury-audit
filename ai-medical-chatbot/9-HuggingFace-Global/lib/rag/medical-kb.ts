@@ -27,8 +27,16 @@ const RAG_CHUNKS_PATH = path.resolve(process.cwd(), '../../data/rag_chunks.json'
 let _chunks: RagChunk[] | null = null;
 
 // In-memory corpus of live user conversations. Grows as patients chat.
-// A developer adds this to improve answers by learning from past sessions.
-const _userConversationChunks: RagChunk[] = [];
+// Stored on `global` so all Next.js route bundles share the same array
+// (each route is a separate webpack bundle in dev mode).
+declare global {
+  // eslint-disable-next-line no-var
+  var __userConversationChunks: RagChunk[] | undefined;
+}
+if (!global.__userConversationChunks) {
+  global.__userConversationChunks = [];
+}
+const _userConversationChunks = global.__userConversationChunks;
 
 export function addUserConversationChunk(
   userId: string,
@@ -95,9 +103,25 @@ export function buildRAGContext(query: string): string {
   const results = searchMedicalKB(query);
   if (results.length === 0) return '';
 
-  const context = results
-    .map((r) => `[${r.topic}]: ${r.context}`)
-    .join('\n\n');
+  const staticResults  = results.filter((r) => r.topic !== 'user conversation');
+  const liveResults    = results.filter((r) => r.topic === 'user conversation');
 
-  return `\n\nRelevant medical knowledge:\n${context}\n\nUse the above medical knowledge to inform your response, but always use your general medical training as well. Do not simply copy the context — synthesize it into a helpful, conversational response.`;
+  const parts: string[] = [];
+
+  if (staticResults.length > 0) {
+    parts.push(
+      `Relevant medical guidelines:\n` +
+      staticResults.map((r) => `[${r.topic}]: ${r.context}`).join('\n\n'),
+    );
+  }
+
+  if (liveResults.length > 0) {
+    parts.push(
+      `Related experiences shared by other patients on this platform:\n` +
+      liveResults.map((r) => r.context).join('\n\n') +
+      `\n\nWhere relevant, draw on these experiences to offer empathy and help the current patient feel they are not alone.`,
+    );
+  }
+
+  return `\n\n${parts.join('\n\n')}\n\nUse the above to inform your response.`;
 }
