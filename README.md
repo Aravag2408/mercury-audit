@@ -1,7 +1,8 @@
 # Mercury — Privacy Audit of a RAG-Based Medical Chatbot
 
 **Course:** Responsible AI, Law, Ethics & Society — Technion  
-**Topic:** Cross-User Privacy Leakage in Live RAG Memory
+**Topic:** Cross-User Privacy Leakage in Live RAG Memory  
+**Live demo:** [https://mercury-audit.onrender.com](https://mercury-audit.onrender.com)
 
 ---
 
