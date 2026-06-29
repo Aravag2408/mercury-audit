@@ -286,12 +286,6 @@ This is the only fix that operates at generation time, making it complementary t
 
 ---
 
-### Why k-anonymity was considered and rejected
-
-K-anonymity — only surfacing a live RAG chunk if at least *k* users share a sufficiently similar experience — is theoretically elegant but practically unsuitable for this domain. STI conversations are inherently rare and specific: unusual drug reactions, uncommon infections, or stigmatised conditions appear only once or twice in any real corpus. A k-anonymity threshold would suppress exactly the cases where a patient most needs to know others have been through the same thing, defeating the system's core purpose. The utility/privacy tradeoff is too harsh for a medical empathy application. Rejecting it for this reason is itself analytically meaningful: privacy techniques must be evaluated against the specific domain, not applied mechanically.
-
----
-
 ## LLM provider chain
 
 The app uses a fallback chain so the audit works even when free API limits are hit:
