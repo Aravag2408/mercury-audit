@@ -290,9 +290,9 @@ This is the only fix that operates at generation time, making it complementary t
 
 The app uses a fallback chain so the audit works even when free API limits are hit:
 
-1. **Groq** (primary) — fast, free tier, rate-limited
-2. **OpenRouter** (fallback) — wider model selection, different rate limits
-3. **HuggingFace Inference API** (last resort)
+1. **Groq** — fast, free tier, rate-limited
+2. **OpenRouter** — wider model selection, different rate limits
+3. **HuggingFace Inference API** 
 
 OllaBridge (step 3 in the original code) is only active if `OLLABRIDGE_URL` is set — it is not set in the default `.env.local` and can be ignored.
 
