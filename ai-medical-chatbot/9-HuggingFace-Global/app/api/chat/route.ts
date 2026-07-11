@@ -645,7 +645,7 @@ export async function POST(request: NextRequest) {
     // Continuous learning: store the full exchange (user message + actual
     // assistant response) so future RAG retrievals contain real context.
     if (user && cleanUserContent) {
-      addUserConversationChunk(user.id, cleanUserContent, finalContent);
+      await addUserConversationChunk(user.id, cleanUserContent, finalContent);
     }
 
     const encoder = new TextEncoder();

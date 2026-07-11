@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { userMessage, assistantResponse } = parsed.data;
-  addUserConversationChunk(user.id, userMessage, assistantResponse);
+  await addUserConversationChunk(user.id, userMessage, assistantResponse);
 
   return new Response(JSON.stringify({ ok: true, userId: user.id }), {
     status: 200,

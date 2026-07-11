@@ -9,6 +9,8 @@
 
 import fs from 'fs';
 import path from 'path';
+import { ragScrubEnabled } from '@/lib/feature-flags';
+import { scrubForStorage } from './scrub';
 
 interface RagChunk {
   source: string;
@@ -38,17 +40,38 @@ if (!global.__userConversationChunks) {
 }
 const _userConversationChunks = global.__userConversationChunks;
 
-export function addUserConversationChunk(
+export async function addUserConversationChunk(
   userId: string,
   userMessage: string,
   assistantResponse: string,
-): void {
+): Promise<void> {
+  let text: string;
+
+  if (ragScrubEnabled()) {
+    try {
+      const summary = await scrubForStorage(userMessage, assistantResponse);
+      text = `De-identified patient experience: ${summary}`;
+    } catch (err) {
+      // Fail-closed: could not de-identify → drop the turn, store nothing.
+      // A privacy control must never persist un-de-identified content.
+      console.warn(
+        `[RAG] Scrub failed for user=${userId}; dropping turn (fail-closed): ${err}`,
+      );
+      return;
+    }
+  } else {
+    text = `Patient message: ${userMessage}\nAssistant response: ${assistantResponse}`;
+  }
+
   _userConversationChunks.push({
     source: 'user_conversation',
-    text: `Patient message: ${userMessage}\nAssistant response: ${assistantResponse}`,
+    text,
     patient_id: userId,
   });
-  console.log(`[RAG] Added conversation chunk for user=${userId}. Total live chunks: ${_userConversationChunks.length}`);
+  console.log(
+    `[RAG] Added conversation chunk for user=${userId} (scrub=${ragScrubEnabled()}). ` +
+    `Total live chunks: ${_userConversationChunks.length}`,
+  );
 }
 
 function loadChunks(): RagChunk[] {

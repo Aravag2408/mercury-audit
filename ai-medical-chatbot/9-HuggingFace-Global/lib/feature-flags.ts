@@ -76,6 +76,26 @@ export const emergencyCardEnabled = (): boolean =>
   truthy(process.env.MEDOS_EMERGENCY_CARD_ENABLED);
 
 /**
+ * Storage-layer RAG PII scrub.
+ *
+ * When ON, every conversation turn is de-identified *before* it enters the
+ * live RAG corpus (`addUserConversationChunk`). Two stages run in
+ * `lib/rag/scrub.ts`: a deterministic regex floor (structured PII →
+ * placeholders) followed by an LLM rewrite that strips free-text
+ * identifiers (names, workplaces, clinic names, exact age, location).
+ *
+ * Fail-closed: if the LLM stage cannot complete (all providers down), the
+ * turn is DROPPED rather than stored un-de-identified — nothing that was
+ * not fully de-identified ever persists to the retrievable corpus.
+ *
+ * When OFF (the default), turns are stored verbatim — the baseline the
+ * privacy audit reproduces. Toggle both states to measure the leakage
+ * delta with `audit_demo/attacker.py`.
+ */
+export const ragScrubEnabled = (): boolean =>
+  truthy(process.env.MEDOS_RAG_SCRUB);
+
+/**
  * Snapshot every flag's current value. Convenience for the /api/health
  * endpoint and for logging at process startup.
  */
@@ -84,5 +104,6 @@ export function snapshotFlags(): Record<string, boolean> {
     MEDOS_PER_USER_OLLABRIDGE: perUserOllaBridgeEnabled(),
     MEDOS_OFFLINE_LITE_ENABLED: offlineLiteEnabled(),
     MEDOS_EMERGENCY_CARD_ENABLED: emergencyCardEnabled(),
+    MEDOS_RAG_SCRUB: ragScrubEnabled(),
   };
 }
