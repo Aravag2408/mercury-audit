@@ -2,7 +2,10 @@
 
 **Course:** Responsible AI, Law, Ethics & Society — Technion  
 **Topic:** Cross-User Privacy Leakage in Live RAG Memory  
-**Live demo:** [https://mercury-audit.onrender.com](https://mercury-audit.onrender.com)
+**Live demo:** [https://mercury-audit.onrender.com](https://mercury-audit.onrender.com)  
+**Team:** Arava Gendelman ([@Aravag2408](https://github.com/Aravag2408)), [@anna-kravets](https://github.com/anna-kravets), [@AmeerKashkoush](https://github.com/AmeerKashkoush)
+
+> The Mercury app is adapted from the open-source [ruslanmv/ai-medical-chatbot](https://github.com/ruslanmv/ai-medical-chatbot) project. This repository keeps only the app that was audited (`9-HuggingFace-Global`); the rest of the upstream repository was removed.
 
 ---
 

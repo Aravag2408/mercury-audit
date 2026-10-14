@@ -1,1 +1,0 @@
-gpt/my_venv/bin/activate

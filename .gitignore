@@ -28,3 +28,4 @@ models/
 
 # Local working notes (not for repo)
 helper/
+audit_demo/check_chunks.py
